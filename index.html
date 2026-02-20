@@ -78,6 +78,7 @@
     #wrap{position: relative; display: flex; flex-direction: column; width: 100%; max-width: 500px; height: 100vh; padding-top: 30px; margin: 0 auto; text-align: center;}
     #wrap h1{ margin: 0 auto; font-size: 30px; font-weight: 700;}
 
+    header .today_info{ font-size: 12px;}
     .input-area   {display: flex; gap: 10px; margin-top: 30px;}
     .input-area input#taskInput   {flex: 1; padding: 5px 10px; height: 35px; line-height: 35px; border: 1px solid #ccc; outline: none; border-radius: 12px; }
     .input-area button.addBtn   { width: 40px; height: 35px; text-align: center; line-height: 35px; margin-left: 10px; border: 1px solid #000; border-radius: 9999px;}
@@ -92,6 +93,8 @@
     @media (max-width: 470px){
       #wrap{padding: 20px; max-width: 0100%; height: 100vh;}
       #wrap h1{ font-size: 18px; }
+
+      header .today_info{ font-size: 10px;}
 
       .input-area   { gap: 3px; margin-top: 10px;}
       .input-area input#taskInput   {padding: 3px 5px; height: 25px; line-height: 25px; border-radius: 12px; }
@@ -109,7 +112,16 @@
 <body>
   
   <div id="wrap">
-    <h1>오늘 할일 [탱 업무]</h1>
+    <header>
+      <h1 class="title">오늘 할일 [탱 업무]</h1>
+      
+      <p class="today_info">
+        <span id="date"></span>
+        <span class="divide">|</span>
+        <span id="timer"></span>
+      </p>
+
+    </header>
 
     <div class="input-area">
       <input type="text" id="taskInput" placeholder="업무 입력란" />
@@ -199,6 +211,52 @@
       renderTasks();
 
       document.querySelector(".addBtn").addEventListener("click", addTask);
+
+      //오늘날짜, 타이머
+      function setToday(){
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        const day = dayNames[now.getDay()];
+
+        document.getElementById("date").innerText = `${year}.${month}.${date} (${day})`;
+      }
+
+      setToday();
+
+      //퇴근카운팅
+      function startCountdown(){
+        const endHour = 18;
+        const endMinute = 30;
+
+        function updateTimer(){
+          const now = new Date();
+          const endTime = new Date();
+
+          endTime.setHours(endHour);
+          endTime.setMinutes(endMinute);
+          endTime.setSeconds(0);
+
+          const diff = endTime - now;
+
+          if(diff <= 0){
+            document.getElementById("timer").innerText = "퇴근 완료";
+            return;
+          }
+
+          const hours = Math.floor(diff / (1000*60*60));
+          const minutes = Math.floor((diff / (1000*60))%60);
+
+          document.getElementById("timer").innerText = `퇴근까지 ${hours}시간 ${minutes}분`;
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 60000); // 1분마다 업데이트하깅ㅇㅇㅇ
+      }
+
+      startCountdown();
     });
   </script>
 </body>
