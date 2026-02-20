@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>김태은 업무 대시보드</title>
+
+  <style>
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-1Thin.woff2') format('woff2');
+    font-weight: 100;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-2ExtraLight.woff2') format('woff2');
+    font-weight: 200;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2') format('woff2');
+    font-weight: 300;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
+    font-weight: 800;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2') format('woff2');
+    font-weight: 900;
+    font-display: swap;
+}
+
+    *{margin: 0; padding: 0; box-sizing: border-box;}
+    ul,li,ol {list-style: none;}
+    button  {background: none; border: none; cursor: pointer; font-family: 'Paperozi';}
+
+    body  {font-family: 'Paperozi';}
+    #wrap{position: relative; display: flex; flex-direction: column; width: 100%; max-width: 500px; height: 100vh; padding-top: 30px; margin: 0 auto; text-align: center;}
+    #wrap h1{ margin: 0 auto; font-size: 30px; font-weight: 700;}
+
+    .input-area   {display: flex; gap: 10px; margin-top: 30px;}
+    .input-area input#taskInput   {flex: 1; padding: 5px 10px; height: 35px; line-height: 35px; border: 1px solid #ccc; outline: none; border-radius: 12px; }
+    .input-area button.addBtn   { width: 40px; height: 35px; text-align: center; line-height: 35px; margin-left: 10px; border: 1px solid #000; border-radius: 9999px;}
+
+    ul#taskList   {overflow: auto; display: flex; width: 100%; margin: 40px auto 0; padding: 20px; flex-direction: column; gap: 8px;  border: 1px solid #ccc;}
+    ul#taskList li   {display: flex; flex: 1; gap: 20px; width: 100%; text-align: left;}
+    ul#taskList li span.task-text   {flex: 1;}
+    ul#taskList li button.delBtn   {display: flex; align-items: center; justify-content: center; margin: auto 0; width: 20px; height: 20px; font-size: 12px; border: 1px solid #000; border-radius: 9999px;}
+
+    button.allClear   {position: absolute; top: 50px; right: 0; color: red;}
+
+    @media (max-width: 470px){
+      #wrap{padding: 20px; max-width: 0100%; height: 100vh;}
+      #wrap h1{ font-size: 18px; }
+
+      .input-area   { gap: 3px; margin-top: 10px;}
+      .input-area input#taskInput   {padding: 3px 5px; height: 25px; line-height: 25px; border-radius: 12px; }
+      .input-area button.addBtn   { width: 30px; height: 25px; line-height: 25px; margin-left: 5px; font-size: 12px;}
+
+      ul#taskList   {width: 100%; margin: 10px auto 0; padding: 10px; gap: 4px; }
+      ul#taskList li   { gap: 10px; }
+      ul#taskList li button.delBtn   { width: 13px; height: 13px; font-size: 9px;}
+
+      button.allClear   { top: 20px; right: 20px; font-size: 10px;}
+    }
+  </style>
+</head>
+
+<body>
+  
+  <div id="wrap">
+    <h1>오늘 할일 [탱 업무]</h1>
+
+    <div class="input-area">
+      <input type="text" id="taskInput" placeholder="업무 입력란" />
+      <button type="button" class="addBtn">추가</button>
+    </div>
+
+    <button type="button" class="allClear">전체삭제</button>
+
+    <ul id="taskList"></ul>
+  </div>
+  
+  
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      
+      let task = JSON.parse(localStorage.getItem("task")) || [];
+      
+      // 엔터키로도 할 일 추가
+      document.getElementById("taskInput").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          addTask();
+        }
+      });
+      
+      document.querySelector('button.allClear').addEventListener("click", function(){
+        if(!window.confirm('모두 삭제하시겠습니까?')) return;
+        
+        task.splice(0);
+        saveTask();
+        renderTasks();
+      });
+
+      function saveTask(){
+        localStorage.setItem("task", JSON.stringify(task));
+      }
+
+      function renderTasks(){
+        const list = document.getElementById("taskList");
+        list.innerHTML = "";
+
+        task.forEach((task, index) => {
+          const li = document.createElement("li");
+          if(task.completed) li.classList.add("completed");
+
+          li.innerHTML = `
+          <span class="task-text">${task.text}</span>
+          <button type="button" class="delBtn">X</button>
+          `;
+
+          li.querySelector(".task-text").addEventListener('click', function(){
+            toggleTask(index);
+          });
+
+          li.querySelector(".delBtn").addEventListener('click', function(){
+            deleteTask(index);
+          });
+
+          list.appendChild(li);
+        })
+      }
+
+      function addTask(){
+        const input = document.getElementById("taskInput");
+        const text = input.value.trim();
+
+        if(text === "") return;
+
+        task.push({text: text, completed: false});
+        input.value = "";
+        saveTask();
+        renderTasks();
+      }
+
+      function deleteTask(index){
+        task.splice(index, 1);
+        saveTask();
+        renderTasks();
+      }
+
+      function toggleTask(index){
+        task[index].completed = !task[index].completed;
+        saveTask();
+        renderTasks();
+      }
+
+      renderTasks();
+
+      document.querySelector(".addBtn").addEventListener("click", addTask);
+    });
+  </script>
+</body>
+</html>
