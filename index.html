@@ -88,6 +88,9 @@
     ul#taskList li.completed span.task-text   {text-decoration: line-through;}
     ul#taskList li span.task-text   {flex: 1;}
     ul#taskList li button.delBtn   {display: flex; align-items: center; justify-content: center; margin: auto 0; width: 20px; height: 20px; font-size: 12px; border: 1px solid #000; border-radius: 9999px;}
+    ul#taskList li .drag-handle   { cursor: grab; color: #ccc; display: flex; align-items: center; user-select: none; font-size: 18px; }
+    ul#taskList li.dragging   { opacity: 0.3; }
+    ul#taskList li.drag-over   { border-top: 2px solid #555; }
 
     button.allClear   {position: absolute; top: 50px; right: 0; color: red;}
 
@@ -140,6 +143,7 @@
     document.addEventListener('DOMContentLoaded', function(){
       
       let task = JSON.parse(localStorage.getItem("task")) || [];
+      let dragSrcIndex = null;
       
       // 엔터키로도 할 일 추가
       document.getElementById("taskInput").addEventListener("keydown", function(e) {
@@ -164,12 +168,14 @@
         const list = document.getElementById("taskList");
         list.innerHTML = "";
 
-        task.forEach((task, index) => {
+        task.forEach((item, index) => {
           const li = document.createElement("li");
-          if(task.completed) li.classList.add("completed");
+          if(item.completed) li.classList.add("completed");
+          li.setAttribute('draggable', 'true');
 
           li.innerHTML = `
-          <span class="task-text">${task.text}</span>
+          <span class="drag-handle">⠿</span>
+          <span class="task-text">${item.text}</span>
           <button type="button" class="delBtn">X</button>
           `;
 
@@ -179,6 +185,31 @@
 
           li.querySelector(".delBtn").addEventListener('click', function(){
             deleteTask(index);
+          });
+
+          li.addEventListener('dragstart', function(e) {
+            dragSrcIndex = index;
+            setTimeout(() => li.classList.add('dragging'), 0);
+            e.dataTransfer.effectAllowed = 'move';
+          });
+
+          li.addEventListener('dragend', function() {
+            li.classList.remove('dragging');
+            document.querySelectorAll('#taskList li').forEach(el => el.classList.remove('drag-over'));
+          });
+
+          li.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            document.querySelectorAll('#taskList li').forEach(el => el.classList.remove('drag-over'));
+            if (dragSrcIndex !== index) li.classList.add('drag-over');
+          });
+
+          li.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (dragSrcIndex === null || dragSrcIndex === index) return;
+            reorderTask(dragSrcIndex, index);
+            dragSrcIndex = null;
           });
 
           list.appendChild(li);
@@ -205,6 +236,13 @@
 
       function toggleTask(index){
         task[index].completed = !task[index].completed;
+        saveTask();
+        renderTasks();
+      }
+
+      function reorderTask(fromIndex, toIndex){
+        const moved = task.splice(fromIndex, 1)[0];
+        task.splice(toIndex, 0, moved);
         saveTask();
         renderTasks();
       }
