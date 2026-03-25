@@ -171,7 +171,6 @@
         task.forEach((item, index) => {
           const li = document.createElement("li");
           if(item.completed) li.classList.add("completed");
-          li.setAttribute('draggable', 'true');
 
           li.innerHTML = `
           <span class="drag-handle">⠿</span>
@@ -187,6 +186,14 @@
             deleteTask(index);
           });
 
+          const handle = li.querySelector(".drag-handle");
+          handle.addEventListener('mousedown', function() {
+            li.setAttribute('draggable', 'true');
+          });
+          handle.addEventListener('mouseup', function() {
+            li.setAttribute('draggable', 'false');
+          });
+
           li.addEventListener('dragstart', function(e) {
             dragSrcIndex = index;
             setTimeout(() => li.classList.add('dragging'), 0);
@@ -194,6 +201,7 @@
           });
 
           li.addEventListener('dragend', function() {
+            li.setAttribute('draggable', 'false');
             li.classList.remove('dragging');
             document.querySelectorAll('#taskList li').forEach(el => el.classList.remove('drag-over'));
           });
